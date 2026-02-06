@@ -1,0 +1,138 @@
+# 🏠 Smart Home Automation Configuration
+
+name: "Smart Home Automation"
+description: "Complete smart home setup with lighting, climate, and security"
+version: "1.0.0"
+category: "home-automation"
+
+# OpenClaw specific settings
+openclaw:
+  version: ">=1.30.0"
+  capabilities: ["web", "filesystem", "notifications", "nodes"]
+  
+# Skill configurations
+skills:
+  - name: "home-assistant"
+    enabled: true
+    config:
+      url: "http://homeassistant.local:8123"
+      token: "${HOMEASSISTANT_TOKEN}"
+      
+  - name: "weather"
+    enabled: true
+    config:
+      location: "auto"
+      units: "imperial"
+      
+  - name: "notifications"
+    enabled: true
+    config:
+      channels: ["discord", "telegram"]
+      
+# Smart lighting automation
+lighting:
+  enabled: true
+  rooms:
+    - name: "living_room"
+      lights: ["light.living_room_ceiling", "light.living_room_lamp"]
+      automation:
+        sunset_on: true
+        motion_detection: true
+        brightness_schedule:
+          morning: 80
+          afternoon: 100
+          evening: 60
+          night: 20
+          
+    - name: "bedroom"
+      lights: ["light.bedroom_ceiling", "light.bedside_table"]
+      automation:
+        wake_up_light: true
+        sleep_mode: true
+        
+# Climate control
+climate:
+  enabled: true
+  thermostats:
+    - name: "main_thermostat"
+      entity_id: "climate.main_thermostat"
+      schedules:
+        weekday:
+          wake: { time: "06:30", temp: 72 }
+          away: { time: "08:00", temp: 68 }
+          home: { time: "17:30", temp: 72 }
+          sleep: { time: "22:00", temp: 68 }
+        weekend:
+          wake: { time: "08:00", temp: 72 }
+          home: { time: "09:00", temp: 72 }
+          sleep: { time: "23:00", temp: 68 }
+          
+# Security system
+security:
+  enabled: true
+  cameras:
+    - name: "front_door"
+      entity_id: "camera.front_door"
+      motion_detection: true
+      night_vision: true
+      
+    - name: "back_yard"
+      entity_id: "camera.back_yard"
+      motion_detection: true
+      
+  sensors:
+    - name: "front_door_sensor"
+      entity_id: "binary_sensor.front_door"
+      type: "door"
+      
+    - name: "motion_sensor_living_room"
+      entity_id: "binary_sensor.motion_living_room"
+      type: "motion"
+      
+# Voice control
+voice_control:
+  enabled: true
+  wake_words: ["Hey ClawPatrol", "OpenClaw"]
+  commands:
+    - phrase: "turn on the lights"
+      action: "lighting.turn_on_all"
+      
+    - phrase: "set temperature to {temp} degrees"
+      action: "climate.set_temperature"
+      
+    - phrase: "show me the front door camera"
+      action: "security.show_camera.front_door"
+      
+# Notifications
+notifications:
+  enabled: true
+  rules:
+    - event: "security.motion_detected"
+      message: "Motion detected at {location}"
+      channels: ["discord", "telegram"]
+      
+    - event: "door.opened"
+      message: "{door_name} door opened"
+      channels: ["discord"]
+      
+    - event: "climate.temperature_alert"
+      message: "Temperature alert: {temperature}°F in {room}"
+      channels: ["telegram"]
+      
+# Monitoring
+monitoring:
+  enabled: true
+  metrics:
+    - name: "energy_usage"
+      interval: "1h"
+      
+    - name: "device_status"
+      interval: "5m"
+      
+    - name: "automation_success_rate"
+      interval: "1d"
+      
+# Security settings
+security:
+  log_level: "info"
+  webhook_url: "${SECURITY_WEBHOOK_URL}"
